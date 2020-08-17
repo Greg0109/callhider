@@ -8,12 +8,20 @@
 @interface SpringBoard
 +(id)sharedApplication;
 -(void)_updateRingerState:(int)arg1 withVisuals:(BOOL)arg2 updatePreferenceRegister:(BOOL)arg3;
+-(void)applicationDidFinishLaunching:(id)arg1;
+-(void)callhiderringer:(NSNotification *)notification;
+@end
+
+@interface NSDistributedNotificationCenter : NSNotificationCenter
++ (instancetype)defaultCenter;
+- (void)postNotificationName:(NSString *)name object:(NSString *)object userInfo:(NSDictionary *)userInfo;
 @end
 
 NSArray *contactnamearray;
 NSString *fakename;
 BOOL mask;
 BOOL ringer;
+
 %hook TUCall
 - (NSString *)displayName {
   NSString *realName = %orig;
@@ -23,13 +31,21 @@ BOOL ringer;
         realName = fakename;
       }
       if (ringer) {
-        SpringBoard *springboard = [%c(SpringBoard) sharedApplication];
-        [springboard _updateRingerState:0 withVisuals:YES updatePreferenceRegister:YES];
+        [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"CallHider-Ringer" object:nil userInfo:nil];
       }
       break;
     }
   }
   return realName;
+}
+%end
+
+%hook SpringBoard
+-(void)applicationDidFinishLaunching:(id)arg1 {
+  [[NSDistributedNotificationCenter defaultCenter] addObserverForName:@"CallHider-Ringer" object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *notification) {
+    [self _updateRingerState:0 withVisuals:YES updatePreferenceRegister:YES];
+  }];
+  %orig;
 }
 %end
 

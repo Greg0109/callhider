@@ -9,7 +9,19 @@
 @interface SpringBoard
 +(id)sharedApplication;
 -(void)_updateRingerState:(int)arg1 withVisuals:(BOOL)arg2 updatePreferenceRegister:(BOOL)arg3;
+-(void)applicationDidFinishLaunching:(id)arg1;
+-(void)callhiderringer:(NSNotification *)notification;
 @end
+
+@interface NSDistributedNotificationCenter : NSNotificationCenter
++ (instancetype)defaultCenter;
+- (void)postNotificationName:(NSString *)name object:(NSString *)object userInfo:(NSDictionary *)userInfo;
+@end
+
+NSArray *contactnamearray;
+NSString *fakename;
+BOOL mask;
+BOOL ringer;
 
 
 #include <substrate.h>
@@ -33,13 +45,9 @@
 #endif
 
 @class TUCall; @class SpringBoard; 
-static NSString * (*_logos_orig$_ungrouped$TUCall$displayName)(_LOGOS_SELF_TYPE_NORMAL TUCall* _LOGOS_SELF_CONST, SEL); static NSString * _logos_method$_ungrouped$TUCall$displayName(_LOGOS_SELF_TYPE_NORMAL TUCall* _LOGOS_SELF_CONST, SEL); 
-static __inline__ __attribute__((always_inline)) __attribute__((unused)) Class _logos_static_class_lookup$SpringBoard(void) { static Class _klass; if(!_klass) { _klass = objc_getClass("SpringBoard"); } return _klass; }
-#line 13 "Tweak.x"
-NSArray *contactnamearray;
-NSString *fakename;
-BOOL mask;
-BOOL ringer;
+static NSString * (*_logos_orig$_ungrouped$TUCall$displayName)(_LOGOS_SELF_TYPE_NORMAL TUCall* _LOGOS_SELF_CONST, SEL); static NSString * _logos_method$_ungrouped$TUCall$displayName(_LOGOS_SELF_TYPE_NORMAL TUCall* _LOGOS_SELF_CONST, SEL); static void (*_logos_orig$_ungrouped$SpringBoard$applicationDidFinishLaunching$)(_LOGOS_SELF_TYPE_NORMAL SpringBoard* _LOGOS_SELF_CONST, SEL, id); static void _logos_method$_ungrouped$SpringBoard$applicationDidFinishLaunching$(_LOGOS_SELF_TYPE_NORMAL SpringBoard* _LOGOS_SELF_CONST, SEL, id); 
+
+#line 25 "Tweak.x"
 
 static NSString * _logos_method$_ungrouped$TUCall$displayName(_LOGOS_SELF_TYPE_NORMAL TUCall* _LOGOS_SELF_CONST __unused self, SEL __unused _cmd) {
   NSString *realName = _logos_orig$_ungrouped$TUCall$displayName(self, _cmd);
@@ -49,8 +57,7 @@ static NSString * _logos_method$_ungrouped$TUCall$displayName(_LOGOS_SELF_TYPE_N
         realName = fakename;
       }
       if (ringer) {
-        SpringBoard *springboard = [_logos_static_class_lookup$SpringBoard() sharedApplication];
-        [springboard _updateRingerState:0 withVisuals:YES updatePreferenceRegister:YES];
+        [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"CallHider-Ringer" object:nil userInfo:nil];
       }
       break;
     }
@@ -59,7 +66,16 @@ static NSString * _logos_method$_ungrouped$TUCall$displayName(_LOGOS_SELF_TYPE_N
 }
 
 
-static __attribute__((constructor)) void _logosLocalCtor_e1bc82cf(int __unused argc, char __unused **argv, char __unused **envp) {
+
+static void _logos_method$_ungrouped$SpringBoard$applicationDidFinishLaunching$(_LOGOS_SELF_TYPE_NORMAL SpringBoard* _LOGOS_SELF_CONST __unused self, SEL __unused _cmd, id arg1) {
+  [[NSDistributedNotificationCenter defaultCenter] addObserverForName:@"CallHider-Ringer" object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *notification) {
+    [self _updateRingerState:0 withVisuals:YES updatePreferenceRegister:YES];
+  }];
+  _logos_orig$_ungrouped$SpringBoard$applicationDidFinishLaunching$(self, _cmd, arg1);
+}
+
+
+static __attribute__((constructor)) void _logosLocalCtor_da6b7450(int __unused argc, char __unused **argv, char __unused **envp) {
   NSMutableDictionary *prefs = [NSMutableDictionary dictionaryWithContentsOfFile:@"/User/Library/Preferences/com.greg0109.callhiderprefs.plist"];
   BOOL enable = prefs[@"enabled"] ? [prefs[@"enabled"] boolValue] : YES;
   mask = prefs[@"mask"] ? [prefs[@"mask"] boolValue] : YES;
@@ -68,6 +84,6 @@ static __attribute__((constructor)) void _logosLocalCtor_e1bc82cf(int __unused a
   contactnamearray = [contactname componentsSeparatedByString:@";"];
   fakename = prefs[@"fakename"] && !([prefs[@"fakename"] isEqualToString:@""]) ? [prefs[@"fakename"] stringValue] : @"Fake Name";
   if (enable) {
-    {Class _logos_class$_ungrouped$TUCall = objc_getClass("TUCall"); { MSHookMessageEx(_logos_class$_ungrouped$TUCall, @selector(displayName), (IMP)&_logos_method$_ungrouped$TUCall$displayName, (IMP*)&_logos_orig$_ungrouped$TUCall$displayName);}}
+    {Class _logos_class$_ungrouped$TUCall = objc_getClass("TUCall"); { MSHookMessageEx(_logos_class$_ungrouped$TUCall, @selector(displayName), (IMP)&_logos_method$_ungrouped$TUCall$displayName, (IMP*)&_logos_orig$_ungrouped$TUCall$displayName);}Class _logos_class$_ungrouped$SpringBoard = objc_getClass("SpringBoard"); { MSHookMessageEx(_logos_class$_ungrouped$SpringBoard, @selector(applicationDidFinishLaunching:), (IMP)&_logos_method$_ungrouped$SpringBoard$applicationDidFinishLaunching$, (IMP*)&_logos_orig$_ungrouped$SpringBoard$applicationDidFinishLaunching$);}}
   }
 }
