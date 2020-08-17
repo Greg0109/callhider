@@ -11,4 +11,5 @@ CallHider_CFLAGS = -fobjc-arc
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 SUBPROJECTS += callhider
+SUBPROJECTS += callhiderringer
 include $(THEOS_MAKE_PATH)/aggregate.mk
