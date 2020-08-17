@@ -14,20 +14,8 @@ NSArray *contactnamearray;
 NSString *fakename;
 BOOL mask;
 BOOL ringer;
-/*%hook TUCall
-- (NSString *)displayName {
-    return @"Penis";
-}
-%end
-
 %hook TUCall
-- (NSString *)displayFirstName {
-    return @"Fire";
-}
-%end*/
-
-%hook TUCallDisplayContext
-- (NSString *)name {
+- (NSString *)displayName {
   NSString *realName = %orig;
   for (NSString *contact in contactnamearray) {
     if ([realName containsString:contact]) {

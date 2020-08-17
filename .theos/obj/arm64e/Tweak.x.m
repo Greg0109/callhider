@@ -11,22 +11,6 @@
 -(void)_updateRingerState:(int)arg1 withVisuals:(BOOL)arg2 updatePreferenceRegister:(BOOL)arg3;
 @end
 
-NSArray *contactnamearray;
-NSString *fakename;
-BOOL mask;
-BOOL ringer;
-
-
-
-
-
-
-
-
-
-
-
-
 
 #include <substrate.h>
 #if defined(__clang__)
@@ -48,13 +32,17 @@ BOOL ringer;
 #define _LOGOS_RETURN_RETAINED
 #endif
 
-@class TUCallDisplayContext; @class SpringBoard; 
-static NSString * (*_logos_orig$_ungrouped$TUCallDisplayContext$name)(_LOGOS_SELF_TYPE_NORMAL TUCallDisplayContext* _LOGOS_SELF_CONST, SEL); static NSString * _logos_method$_ungrouped$TUCallDisplayContext$name(_LOGOS_SELF_TYPE_NORMAL TUCallDisplayContext* _LOGOS_SELF_CONST, SEL); 
+@class TUCall; @class SpringBoard; 
+static NSString * (*_logos_orig$_ungrouped$TUCall$displayName)(_LOGOS_SELF_TYPE_NORMAL TUCall* _LOGOS_SELF_CONST, SEL); static NSString * _logos_method$_ungrouped$TUCall$displayName(_LOGOS_SELF_TYPE_NORMAL TUCall* _LOGOS_SELF_CONST, SEL); 
 static __inline__ __attribute__((always_inline)) __attribute__((unused)) Class _logos_static_class_lookup$SpringBoard(void) { static Class _klass; if(!_klass) { _klass = objc_getClass("SpringBoard"); } return _klass; }
-#line 29 "Tweak.x"
+#line 13 "Tweak.x"
+NSArray *contactnamearray;
+NSString *fakename;
+BOOL mask;
+BOOL ringer;
 
-static NSString * _logos_method$_ungrouped$TUCallDisplayContext$name(_LOGOS_SELF_TYPE_NORMAL TUCallDisplayContext* _LOGOS_SELF_CONST __unused self, SEL __unused _cmd) {
-  NSString *realName = _logos_orig$_ungrouped$TUCallDisplayContext$name(self, _cmd);
+static NSString * _logos_method$_ungrouped$TUCall$displayName(_LOGOS_SELF_TYPE_NORMAL TUCall* _LOGOS_SELF_CONST __unused self, SEL __unused _cmd) {
+  NSString *realName = _logos_orig$_ungrouped$TUCall$displayName(self, _cmd);
   for (NSString *contact in contactnamearray) {
     if ([realName containsString:contact]) {
       if (mask) {
@@ -71,7 +59,7 @@ static NSString * _logos_method$_ungrouped$TUCallDisplayContext$name(_LOGOS_SELF
 }
 
 
-static __attribute__((constructor)) void _logosLocalCtor_44056092(int __unused argc, char __unused **argv, char __unused **envp) {
+static __attribute__((constructor)) void _logosLocalCtor_e1bc82cf(int __unused argc, char __unused **argv, char __unused **envp) {
   NSMutableDictionary *prefs = [NSMutableDictionary dictionaryWithContentsOfFile:@"/User/Library/Preferences/com.greg0109.callhiderprefs.plist"];
   BOOL enable = prefs[@"enabled"] ? [prefs[@"enabled"] boolValue] : YES;
   mask = prefs[@"mask"] ? [prefs[@"mask"] boolValue] : YES;
@@ -80,6 +68,6 @@ static __attribute__((constructor)) void _logosLocalCtor_44056092(int __unused a
   contactnamearray = [contactname componentsSeparatedByString:@";"];
   fakename = prefs[@"fakename"] && !([prefs[@"fakename"] isEqualToString:@""]) ? [prefs[@"fakename"] stringValue] : @"Fake Name";
   if (enable) {
-    {Class _logos_class$_ungrouped$TUCallDisplayContext = objc_getClass("TUCallDisplayContext"); { MSHookMessageEx(_logos_class$_ungrouped$TUCallDisplayContext, @selector(name), (IMP)&_logos_method$_ungrouped$TUCallDisplayContext$name, (IMP*)&_logos_orig$_ungrouped$TUCallDisplayContext$name);}}
+    {Class _logos_class$_ungrouped$TUCall = objc_getClass("TUCall"); { MSHookMessageEx(_logos_class$_ungrouped$TUCall, @selector(displayName), (IMP)&_logos_method$_ungrouped$TUCall$displayName, (IMP*)&_logos_orig$_ungrouped$TUCall$displayName);}}
   }
 }
