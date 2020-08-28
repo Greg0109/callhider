@@ -1,1 +1,1 @@
-{ Filter = { Bundles = ( "com.apple.TelephonyUtilities" ); }; }
+{ Filter = { Bundles = ( "com.apple.InCallService", "com.apple.springboard" ); }; }

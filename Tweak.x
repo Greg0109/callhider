@@ -1,13 +1,26 @@
-@interface SBVolumeControl
-+(id)sharedInstance;
--(void)setVolume:(float)arg1 forCategory:(NSString *)arg1;
--(BOOL)_HUDIsDisplayableForCategory:(id)arg1 ;
--(void)toggleMute;
+@interface TUCall
+-(NSString *)name;
+-(BOOL)isIncoming;
+-(int)callStatus;
+@end
+
+@interface SpringBoard
++(id)sharedApplication;
+-(void)_updateRingerState:(int)arg1 withVisuals:(BOOL)arg2 updatePreferenceRegister:(BOOL)arg3;
+-(void)applicationDidFinishLaunching:(id)arg1;
+-(void)callhiderringer:(NSNotification *)notification;
 @end
 
 @interface NSDistributedNotificationCenter : NSNotificationCenter
 + (instancetype)defaultCenter;
 - (void)postNotificationName:(NSString *)name object:(NSString *)object userInfo:(NSDictionary *)userInfo;
+@end
+
+@interface SBVolumeControl
++(id)sharedInstance;
+-(void)setVolume:(float)arg1 forCategory:(NSString *)arg1;
+-(BOOL)_HUDIsDisplayableForCategory:(id)arg1 ;
+-(void)toggleMute;
 @end
 
 NSArray *contactnamearray;
@@ -16,7 +29,7 @@ BOOL mask;
 BOOL ringer;
 
 %hook TUCall
-- (NSString *)displayName {
+-(NSString *)displayName {
   NSString *realName = %orig;
   for (NSString *contact in contactnamearray) {
     if ([realName containsString:contact]) {
@@ -29,7 +42,18 @@ BOOL ringer;
       break;
     }
   }
+  NSLog(@"CallHider: Called"); //com.apple.inCallService
   return realName;
+}
+%end
+
+%hook SpringBoard
+-(void)applicationDidFinishLaunching:(id)arg1 {
+  [[NSDistributedNotificationCenter defaultCenter] addObserverForName:@"CallHider-Ringer" object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *notification) {
+    [self _updateRingerState:0 withVisuals:YES updatePreferenceRegister:YES];
+    //NSLog(@"CallHider: I'm getting called");
+  }];
+  %orig;
 }
 %end
 
@@ -44,4 +68,5 @@ BOOL ringer;
   if (enable) {
     %init();
   }
+  NSLog(@"CallHider: ctor called");
 }
