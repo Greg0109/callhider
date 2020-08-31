@@ -31,18 +31,21 @@ BOOL ringer;
 %hook TUCall
 -(NSString *)displayName {
   NSString *realName = %orig;
-  for (NSString *contact in contactnamearray) {
-    if ([realName containsString:contact]) {
-      if (mask) {
-        realName = fakename;
+  NSMutableDictionary *defaults = [NSMutableDictionary dictionaryWithContentsOfFile:@"/User/Library/Preferences/com.apple.springboard.plist"];
+  if ([defaults[@"CallHider-Status"] boolValue]) {
+    for (NSString *contact in contactnamearray) {
+      if ([realName containsString:contact]) {
+        if (mask) {
+          realName = fakename;
+        }
+        if (ringer) {
+          [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"CallHider-Ringer" object:nil userInfo:nil];
+        }
+        break;
       }
-      if (ringer) {
-        [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"CallHider-Ringer" object:nil userInfo:nil];
-      }
-      break;
-    }
+    }  
   }
-  NSLog(@"CallHider: Called"); //com.apple.inCallService
+  //NSLog(@"CallHider: Called"); //com.apple.inCallService
   return realName;
 }
 %end
@@ -57,6 +60,8 @@ BOOL ringer;
 }
 %end
 
+//TUCallNotificationManager ---- Para evitar que se encienda la pantalla?
+
 %ctor {
   NSMutableDictionary *prefs = [NSMutableDictionary dictionaryWithContentsOfFile:@"/User/Library/Preferences/com.greg0109.callhiderprefs.plist"];
   BOOL enable = prefs[@"enabled"] ? [prefs[@"enabled"] boolValue] : YES;
@@ -68,5 +73,5 @@ BOOL ringer;
   if (enable) {
     %init();
   }
-  NSLog(@"CallHider: ctor called");
+  //NSLog(@"CallHider: ctor called");
 }
