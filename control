@@ -1,6 +1,6 @@
 Package: com.greg0109.callhider
 Name: CallHider
-Version: 1.0.3
+Version: 1.0.5
 Architecture: iphoneos-arm
 Description: Hide the caller ID for whatever reason you want to do it!
 Maintainer: Greg0109
