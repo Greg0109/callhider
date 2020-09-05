@@ -50,7 +50,7 @@ BOOL mask;
 BOOL ringer;
 BOOL hidecall;
 
-BOOL isItLocked() {
+/*BOOL isItLocked() {
 	BOOL locked;
   int check =  [[%c(SBLockStateAggregator) sharedInstance] lockState];
   if (check == 3 || check == 1) {
@@ -59,7 +59,7 @@ BOOL isItLocked() {
     locked = FALSE;
   }
 	return locked;
-}
+}*/
 
 %hook TUCall
 -(NSString *)displayName {
@@ -78,7 +78,6 @@ BOOL isItLocked() {
       }
     }
   }
-  //NSLog(@"CallHider: Called"); //com.apple.inCallService
   if (hidecall) {
     [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"CallHider-Show" object:nil userInfo:nil];
   }
@@ -88,18 +87,22 @@ BOOL isItLocked() {
 
 %hook SpringBoard
 -(void)applicationDidFinishLaunching:(id)arg1 {
-  [[NSDistributedNotificationCenter defaultCenter] addObserverForName:@"CallHider-Ringer" object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *notification) {
-    [self _updateRingerState:0 withVisuals:YES updatePreferenceRegister:YES];
-  }];
-  [[NSDistributedNotificationCenter defaultCenter] addObserverForName:@"CallHider-Show" object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *notification) {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-      newDate = [NSDate date];
-      if ([newDate timeIntervalSinceDate:oldDate] > 3 || oldDate == nil) {
-        [self _simulateLockButtonPress];
-        oldDate = [NSDate date];
-      }
-    });
-  }];
+  if (ringer) {
+		[[NSDistributedNotificationCenter defaultCenter] addObserverForName:@"CallHider-Ringer" object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *notification) {
+	    [self _updateRingerState:0 withVisuals:NO updatePreferenceRegister:YES];
+	  }];
+	}
+  if (hidecall) {
+		[[NSDistributedNotificationCenter defaultCenter] addObserverForName:@"CallHider-Show" object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *notification) {
+	    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+	      newDate = [NSDate date];
+	      if ([newDate timeIntervalSinceDate:oldDate] > 3 || oldDate == nil) {
+	        [self _simulateLockButtonPress];
+	        oldDate = [NSDate date];
+	      }
+	    });
+	  }];
+	}
   %orig;
 }
 %end
