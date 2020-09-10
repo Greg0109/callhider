@@ -6,5 +6,5 @@ Maintainer: Greg0109
 Author: Greg0109
 Section: Tweaks
 Depends: mobilesubstrate (>= 0.9.5000), com.opa334.ccsupport
-Version: 1.0.6
+Version: 1.0.7
 Installed-Size: 484

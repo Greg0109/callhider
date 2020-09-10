@@ -3,6 +3,11 @@
 -(NSString *)name;
 -(BOOL)isIncoming;
 -(int)callStatus;
+-(void)setShouldSuppressRingtone:(BOOL)arg1 ;
+@end
+
+@interface CXCall
+-(BOOL)hasEnded;
 @end
 
 @interface SpringBoard
@@ -52,17 +57,6 @@ BOOL ringer;
 BOOL hidecall;
 
 
-
-
-
-
-
-
-
-
-
-
-
 #include <substrate.h>
 #if defined(__clang__)
 #if __has_feature(objc_arc)
@@ -83,10 +77,10 @@ BOOL hidecall;
 #define _LOGOS_RETURN_RETAINED
 #endif
 
-@class SpringBoard; @class SBRemoteAlertHandleServer; @class TUCall; 
+@class SpringBoard; @class TUCall; @class SBRemoteAlertHandleServer; 
 static NSString * (*_logos_orig$_ungrouped$TUCall$displayName)(_LOGOS_SELF_TYPE_NORMAL TUCall* _LOGOS_SELF_CONST, SEL); static NSString * _logos_method$_ungrouped$TUCall$displayName(_LOGOS_SELF_TYPE_NORMAL TUCall* _LOGOS_SELF_CONST, SEL); static void (*_logos_orig$_ungrouped$SpringBoard$applicationDidFinishLaunching$)(_LOGOS_SELF_TYPE_NORMAL SpringBoard* _LOGOS_SELF_CONST, SEL, id); static void _logos_method$_ungrouped$SpringBoard$applicationDidFinishLaunching$(_LOGOS_SELF_TYPE_NORMAL SpringBoard* _LOGOS_SELF_CONST, SEL, id); static void (*_logos_orig$_ungrouped$SBRemoteAlertHandleServer$activate)(_LOGOS_SELF_TYPE_NORMAL SBRemoteAlertHandleServer* _LOGOS_SELF_CONST, SEL); static void _logos_method$_ungrouped$SBRemoteAlertHandleServer$activate(_LOGOS_SELF_TYPE_NORMAL SBRemoteAlertHandleServer* _LOGOS_SELF_CONST, SEL); 
 
-#line 64 "Tweak.x"
+#line 58 "Tweak.x"
 
 static NSString * _logos_method$_ungrouped$TUCall$displayName(_LOGOS_SELF_TYPE_NORMAL TUCall* _LOGOS_SELF_CONST __unused self, SEL __unused _cmd) {
   realName = _logos_orig$_ungrouped$TUCall$displayName(self, _cmd);
@@ -98,7 +92,7 @@ static NSString * _logos_method$_ungrouped$TUCall$displayName(_LOGOS_SELF_TYPE_N
           realName = fakename;
         }
         if (ringer) {
-          [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"CallHider-Ringer" object:nil userInfo:nil];
+          [self setShouldSuppressRingtone:YES];
         }
         return realName;
       }
@@ -113,11 +107,6 @@ static NSString * _logos_method$_ungrouped$TUCall$displayName(_LOGOS_SELF_TYPE_N
 
 
 static void _logos_method$_ungrouped$SpringBoard$applicationDidFinishLaunching$(_LOGOS_SELF_TYPE_NORMAL SpringBoard* _LOGOS_SELF_CONST __unused self, SEL __unused _cmd, id arg1) {
-  if (ringer) {
-		[[NSDistributedNotificationCenter defaultCenter] addObserverForName:@"CallHider-Ringer" object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *notification) {
-	    [self _updateRingerState:0 withVisuals:NO updatePreferenceRegister:YES];
-	  }];
-	}
   if (hidecall) {
 		[[NSDistributedNotificationCenter defaultCenter] addObserverForName:@"CallHider-Show" object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *notification) {
 	    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
@@ -141,9 +130,7 @@ static void _logos_method$_ungrouped$SBRemoteAlertHandleServer$activate(_LOGOS_S
 }
 
 
-
-
-static __attribute__((constructor)) void _logosLocalCtor_80ee91a8(int __unused argc, char __unused **argv, char __unused **envp) {
+static __attribute__((constructor)) void _logosLocalCtor_730ce7b2(int __unused argc, char __unused **argv, char __unused **envp) {
   NSMutableDictionary *prefs = [NSMutableDictionary dictionaryWithContentsOfFile:@"/User/Library/Preferences/com.greg0109.callhiderprefs.plist"];
   BOOL enable = prefs[@"enabled"] ? [prefs[@"enabled"] boolValue] : YES;
   mask = prefs[@"mask"] ? [prefs[@"mask"] boolValue] : YES;

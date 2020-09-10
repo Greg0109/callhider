@@ -2,6 +2,11 @@
 -(NSString *)name;
 -(BOOL)isIncoming;
 -(int)callStatus;
+-(void)setShouldSuppressRingtone:(BOOL)arg1 ;
+@end
+
+@interface CXCall
+-(BOOL)hasEnded;
 @end
 
 @interface SpringBoard
@@ -50,17 +55,6 @@ BOOL mask;
 BOOL ringer;
 BOOL hidecall;
 
-/*BOOL isItLocked() {
-	BOOL locked;
-  int check =  [[%c(SBLockStateAggregator) sharedInstance] lockState];
-  if (check == 3 || check == 1) {
-    locked = TRUE;
-  } else {
-    locked = FALSE;
-  }
-	return locked;
-}*/
-
 %hook TUCall
 -(NSString *)displayName {
   realName = %orig;
@@ -72,7 +66,7 @@ BOOL hidecall;
           realName = fakename;
         }
         if (ringer) {
-          [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"CallHider-Ringer" object:nil userInfo:nil];
+          [self setShouldSuppressRingtone:YES];
         }
         return realName;
       }
@@ -87,11 +81,6 @@ BOOL hidecall;
 
 %hook SpringBoard
 -(void)applicationDidFinishLaunching:(id)arg1 {
-  if (ringer) {
-		[[NSDistributedNotificationCenter defaultCenter] addObserverForName:@"CallHider-Ringer" object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *notification) {
-	    [self _updateRingerState:0 withVisuals:NO updatePreferenceRegister:YES];
-	  }];
-	}
   if (hidecall) {
 		[[NSDistributedNotificationCenter defaultCenter] addObserverForName:@"CallHider-Show" object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *notification) {
 	    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
@@ -114,8 +103,6 @@ BOOL hidecall;
   }
 }
 %end
-
-//TUCallNotificationManager ---- Para evitar que se encienda la pantalla?
 
 %ctor {
   NSMutableDictionary *prefs = [NSMutableDictionary dictionaryWithContentsOfFile:@"/User/Library/Preferences/com.greg0109.callhiderprefs.plist"];
