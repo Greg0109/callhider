@@ -1,4 +1,5 @@
 @interface TUCall
+-(id)init;
 -(NSString *)name;
 -(BOOL)isIncoming;
 -(int)callStatus;
@@ -7,6 +8,11 @@
 
 @interface CXCall
 -(BOOL)hasEnded;
+@end
+
+@interface NCNotificationRequest
+-(NSString *)sectionIdentifier;
+-(id)sound;
 @end
 
 @interface SpringBoard
@@ -47,13 +53,47 @@
 @end
 
 NSArray *contactnamearray;
+NSArray *timeSlotArray;
 NSString *fakename;
 NSString *realName;
 NSDate *oldDate;
 NSDate *newDate;
 BOOL mask;
 BOOL ringer;
+BOOL ringertime;
 BOOL hidecall;
+
+%group ringertimeslots
+static BOOL checkDate() {
+  for (NSString *timeSlot in timeSlotArray) {
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"hh:mm"];
+    NSArray *hours = [timeSlot componentsSeparatedByString:@"-"];
+    NSDate *startHour = [dateFormatter dateFromString:[hours objectAtIndex:0]];
+    NSDate *endHour = [dateFormatter dateFromString:[hours objectAtIndex:1]];
+    NSDate *currentHour = [dateFormatter dateFromString:[dateFormatter stringFromDate:[NSDate date]]];
+    if (([currentHour compare:startHour] == NSOrderedDescending) && ([currentHour compare:endHour] == NSOrderedAscending)) {
+      return YES;
+    } else {
+      continue;
+    }
+  }
+  return NO;
+}
+
+%hook NCNotificationRequest
+-(NSString *)sectionIdentifier {
+  return %orig;
+}
+-(id)sound {
+  NSMutableDictionary *applist = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/com.greg0109.callhiderapplist"];
+  if ([applist valueForKey:[self sectionIdentifier]] && checkDate()) {
+    return nil;
+  }
+  return %orig;
+}
+%end
+%end
 
 %hook TUCall
 -(NSString *)displayName {
@@ -66,7 +106,11 @@ BOOL hidecall;
           realName = fakename;
         }
         if (ringer) {
-          [self setShouldSuppressRingtone:YES];
+          if (ringertime && checkDate()) {
+            [self setShouldSuppressRingtone:YES];
+          } else if (!ringertime) {
+            [self setShouldSuppressRingtone:YES];
+          }
         }
         return realName;
       }
@@ -109,11 +153,17 @@ BOOL hidecall;
   BOOL enable = prefs[@"enabled"] ? [prefs[@"enabled"] boolValue] : YES;
   mask = prefs[@"mask"] ? [prefs[@"mask"] boolValue] : YES;
   ringer = prefs[@"ringer"] ? [prefs[@"ringer"] boolValue] : NO;
+  ringertime = prefs[@"ringertime"] ? [prefs[@"ringertime"] boolValue] : NO;
   hidecall = prefs[@"hidecall"] ? [prefs[@"hidecall"] boolValue] : NO;
+  NSString *timeslot = prefs[@"timeslot"] && !([prefs[@"timeslot"] isEqualToString:@""]) ? [prefs[@"timeslot"] stringValue] : @"00:00-00:00";
+  timeSlotArray = [timeslot componentsSeparatedByString:@";"];
   NSString *contactname = prefs[@"contactname"] && !([prefs[@"contactname"] isEqualToString:@""]) ? [prefs[@"contactname"] stringValue] : @"contact name;contact name";
   contactnamearray = [contactname componentsSeparatedByString:@";"];
   fakename = prefs[@"fakename"] && !([prefs[@"fakename"] isEqualToString:@""]) ? [prefs[@"fakename"] stringValue] : @"Fake Name";
   if (enable) {
     %init();
+  }
+  if (ringertime) {
+    %init(ringertimeslots);
   }
 }
