@@ -85,7 +85,7 @@ BOOL hidecall;
 #define _LOGOS_RETURN_RETAINED
 #endif
 
-@class SpringBoard; @class NCNotificationRequest; @class SBRemoteAlertHandleServer; @class TUCall; 
+@class SBRemoteAlertHandleServer; @class TUCall; @class SpringBoard; @class NCNotificationRequest; 
 static NSString * (*_logos_orig$_ungrouped$TUCall$displayName)(_LOGOS_SELF_TYPE_NORMAL TUCall* _LOGOS_SELF_CONST, SEL); static NSString * _logos_method$_ungrouped$TUCall$displayName(_LOGOS_SELF_TYPE_NORMAL TUCall* _LOGOS_SELF_CONST, SEL); static void (*_logos_orig$_ungrouped$SpringBoard$applicationDidFinishLaunching$)(_LOGOS_SELF_TYPE_NORMAL SpringBoard* _LOGOS_SELF_CONST, SEL, id); static void _logos_method$_ungrouped$SpringBoard$applicationDidFinishLaunching$(_LOGOS_SELF_TYPE_NORMAL SpringBoard* _LOGOS_SELF_CONST, SEL, id); static void (*_logos_orig$_ungrouped$SBRemoteAlertHandleServer$activate)(_LOGOS_SELF_TYPE_NORMAL SBRemoteAlertHandleServer* _LOGOS_SELF_CONST, SEL); static void _logos_method$_ungrouped$SBRemoteAlertHandleServer$activate(_LOGOS_SELF_TYPE_NORMAL SBRemoteAlertHandleServer* _LOGOS_SELF_CONST, SEL); 
 
 #line 66 "Tweak.x"
@@ -93,7 +93,7 @@ static NSString * (*_logos_orig$ringertimeslots$NCNotificationRequest$sectionIde
 static BOOL checkDate() {
   for (NSString *timeSlot in timeSlotArray) {
     NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-    [dateFormatter setDateFormat:@"hh:mm"];
+    [dateFormatter setDateFormat:@"HH:mm"];
     NSArray *hours = [timeSlot componentsSeparatedByString:@"-"];
     NSDate *startHour = [dateFormatter dateFromString:[hours objectAtIndex:0]];
     NSDate *endHour = [dateFormatter dateFromString:[hours objectAtIndex:1]];
@@ -125,6 +125,15 @@ static id _logos_method$ringertimeslots$NCNotificationRequest$sound(_LOGOS_SELF_
 static NSString * _logos_method$_ungrouped$TUCall$displayName(_LOGOS_SELF_TYPE_NORMAL TUCall* _LOGOS_SELF_CONST __unused self, SEL __unused _cmd) {
   realName = _logos_orig$_ungrouped$TUCall$displayName(self, _cmd);
   NSMutableDictionary *defaults = [NSMutableDictionary dictionaryWithContentsOfFile:@"/User/Library/Preferences/com.apple.springboard.plist"];
+  if (ringertime) {
+    if (checkDate()) {
+      NSLog(@"CallHider: Tweak is enabled");
+      [defaults setValue:@"1" forKey:@"CallHider-Status"];
+    } else {
+      NSLog(@"CallHider: Tweak is disabled");
+      [defaults setValue:@"0" forKey:@"CallHider-Status"];
+    }
+  }
   if ([defaults[@"CallHider-Status"] boolValue]) {
     for (NSString *contact in contactnamearray) {
       if ([realName containsString:contact]) {
@@ -133,6 +142,7 @@ static NSString * _logos_method$_ungrouped$TUCall$displayName(_LOGOS_SELF_TYPE_N
         }
         if (ringer) {
           if (ringertime && checkDate()) {
+            NSLog(@"CallHider: Supress ringtone");
             [self setShouldSuppressRingtone:YES];
           } else if (!ringertime) {
             [self setShouldSuppressRingtone:YES];
@@ -174,7 +184,7 @@ static void _logos_method$_ungrouped$SBRemoteAlertHandleServer$activate(_LOGOS_S
 }
 
 
-static __attribute__((constructor)) void _logosLocalCtor_108bf1bd(int __unused argc, char __unused **argv, char __unused **envp) {
+static __attribute__((constructor)) void _logosLocalCtor_a40d8748(int __unused argc, char __unused **argv, char __unused **envp) {
   NSMutableDictionary *prefs = [NSMutableDictionary dictionaryWithContentsOfFile:@"/User/Library/Preferences/com.greg0109.callhiderprefs.plist"];
   BOOL enable = prefs[@"enabled"] ? [prefs[@"enabled"] boolValue] : YES;
   mask = prefs[@"mask"] ? [prefs[@"mask"] boolValue] : YES;

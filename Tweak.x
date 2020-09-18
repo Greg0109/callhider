@@ -67,7 +67,7 @@ BOOL hidecall;
 static BOOL checkDate() {
   for (NSString *timeSlot in timeSlotArray) {
     NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-    [dateFormatter setDateFormat:@"hh:mm"];
+    [dateFormatter setDateFormat:@"HH:mm"];
     NSArray *hours = [timeSlot componentsSeparatedByString:@"-"];
     NSDate *startHour = [dateFormatter dateFromString:[hours objectAtIndex:0]];
     NSDate *endHour = [dateFormatter dateFromString:[hours objectAtIndex:1]];
@@ -99,6 +99,15 @@ static BOOL checkDate() {
 -(NSString *)displayName {
   realName = %orig;
   NSMutableDictionary *defaults = [NSMutableDictionary dictionaryWithContentsOfFile:@"/User/Library/Preferences/com.apple.springboard.plist"];
+  if (ringertime) {
+    if (checkDate()) {
+      NSLog(@"CallHider: Tweak is enabled");
+      [defaults setValue:@"1" forKey:@"CallHider-Status"];
+    } else {
+      NSLog(@"CallHider: Tweak is disabled");
+      [defaults setValue:@"0" forKey:@"CallHider-Status"];
+    }
+  }
   if ([defaults[@"CallHider-Status"] boolValue]) {
     for (NSString *contact in contactnamearray) {
       if ([realName containsString:contact]) {
@@ -107,6 +116,7 @@ static BOOL checkDate() {
         }
         if (ringer) {
           if (ringertime && checkDate()) {
+            NSLog(@"CallHider: Supress ringtone");
             [self setShouldSuppressRingtone:YES];
           } else if (!ringertime) {
             [self setShouldSuppressRingtone:YES];
