@@ -74,7 +74,7 @@
 			<key>key</key>
 			<string>hidecall</string>
 			<key>label</key>
-			<string>Hide Call</string>
+			<string>Hide Call (Doesn't work on iOS 14+)</string>
 		</dict>
 		<dict>
 			<key>cell</key>
